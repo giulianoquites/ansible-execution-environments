@@ -1,10 +1,8 @@
 ---
-version: 1
-build_arg_defaults:
-  EE_BASE_IMAGE: 'registry.redhat.io/ansible-automation-platform-26/ee-supported-rhel9:latest'
-#  EE_BUILDER_IMAGE: 'registry.redhat.io/ansible-automation-platform-26/ansible-builder-rhel9:latest'
+version: 3
 
-#ansible_config: 'ansible.cfg'
+build_arg_defaults:
+  EE_BASE_IMAGE: registry.redhat.io/ansible-automation-platform-26/ee-supported-rhel9:latest
 
 dependencies:
   galaxy: requirements.yml
@@ -12,10 +10,11 @@ dependencies:
   system: bindep.txt
 
 additional_build_steps:
-  prepend: |
-    RUN cat /etc/os-release
-    VOLUME ["/repository"]
-  append:
-    - RUN echo This is a post-install command!
+  prepend_base:
+    - RUN cat /etc/os-release
+    - VOLUME ["/repository"]
+
+  append_final:
+    - RUN echo "Execution Environment build completed"
     - RUN ls -la /etc
-    - RUN ls -la /tmp
+    - RUN ls -la /
