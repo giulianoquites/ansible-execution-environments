@@ -1,0 +1,47 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: ansible-builder
+  namespace: ansible-ees
+spec:
+  description: Creates a build context (including a Containerfile) from an execution environment spec. This build context is populated with dependencies including requirements files.
+  params:
+    - default: execution-environment.yml
+      description: Execution environment file definition.
+      name: FILENAME
+      type: string
+    - default: context
+      description: Execution environment build context.
+      name: BUILD_CONTEXT
+      type: string
+    - default: Containerfile
+      description: Name of file to write image definition to. Either Dockerfile or Containerfile.
+      name: OUTPUT_FILENAME
+      type: string
+    - default: '2'
+      description: ansible-builder output verbosity.
+      name: VERBOSITY
+      type: string
+    - default: 'registry.redhat.io/ansible-automation-platform-26/ee-minimal-rhel9:latest'
+      description: The location of the ansible-builder image.
+      name: BUILDER_IMAGE
+      type: string
+  steps:
+    - computeResources: {}
+      image: $(params.BUILDER_IMAGE)
+      name: ansible-builder-create
+      script: |
+        #!/bin/sh
+        set -eux
+
+        echo "Working directory:"
+        pwd
+        echo "Execution environment file:"
+        ls -l "$(params.FILENAME)"
+
+        ansible-builder create -f "$(params.FILENAME)" -c "$(params.BUILD_CONTEXT)" --output-filename "$(params.OUTPUT_FILENAME)" -v "$(params.VERBOSITY)"
+      workingDir: $(workspaces.source.path)
+  workspaces:
+    - description: The source workspace where the execution environment code is cloned.
+      name: source
+
